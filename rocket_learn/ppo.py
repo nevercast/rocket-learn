@@ -46,7 +46,7 @@ class PPO:
             vf_coef=1,
             max_grad_norm=0.5,
             logger=None,
-            device="cuda",
+            device="cuda"
     ):
         self.rollout_generator = rollout_generator
 
@@ -102,7 +102,7 @@ class PPO:
 
         return (rewards - self.running_rew_mean) / np.sqrt(self.running_rew_var + 1e-8)  # TODO normalize before update?
 
-    def run(self, iterations_per_save=10, save_dir=None):
+    def run(self, iterations_per_save=10, save_dir=None, jit_trace_input=None):
         """
         Generate rollout data and train
         :param iterations_per_save: number of iterations between checkpoint saves
@@ -141,7 +141,7 @@ class PPO:
             self.logger.log({"fps": self.n_steps / (t1 - t0)})
 
             if save_dir and iteration % iterations_per_save == 0:
-                self.save(current_run_dir, iteration)  # noqa
+                self.save(current_run_dir, iteration, jit_trace_input)  # noqa
 
     def set_logger(self, logger):
         self.logger = logger
@@ -315,7 +315,6 @@ class PPO:
 
                 loss.backward()
 
-                # *** self.logger write here to log results ***
                 tot_loss += loss.item()
                 tot_policy_loss += policy_loss.item()
                 tot_entropy_loss += entropy_loss.item()
@@ -347,18 +346,18 @@ class PPO:
         checkpoint = torch.load(load_location)
         self.agent.actor.load_state_dict(checkpoint['actor_state_dict'])
         self.agent.critic.load_state_dict(checkpoint['critic_state_dict'])
-        # self.agent.shared.load_state_dict(checkpoint['shared_state_dict'])
         self.agent.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         
         if continue_iterations:
             self.starting_iteration = checkpoint['epoch']    
             print("Continuing training at iteration " + str(self.starting_iteration))
 
-    def save(self, save_location, current_step):
+    def save(self, save_location, current_step, jit_trace_input=None):
         """
         Save the model weights, optimizer values, and metadata
         :param save_location: where to save
         :param current_step: the current iteration when saved. Use to later continue training
+        :param save_jit: save an additional policy jit model. Will not save if nothing is provided
         """
 
         version_str = str(self.logger.project) + "_" + str(current_step)
@@ -370,7 +369,11 @@ class PPO:
             'epoch': current_step,
             'actor_state_dict': self.agent.actor.state_dict(),
             'critic_state_dict': self.agent.critic.state_dict(),
-            # 'shared_state_dict': self.agent.shared.state_dict(),
             'optimizer_state_dict': self.agent.optimizer.state_dict(),
             # TODO save/load reward normalization mean, std, count
         }, version_dir + "\\checkpoint.pt")
+
+        if jit_trace_input is not None:
+            jit_actor = th.jit.trace(self.agent.actor.to(th.device('cpu')), jit_trace_input)
+            torch.jit.save(jit_actor, version_dir + "\\policy_jit.pt")
+
