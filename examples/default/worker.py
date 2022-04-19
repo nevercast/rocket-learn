@@ -32,7 +32,7 @@ if __name__ == "__main__":
     # BUILD THE ROCKET LEAGUE MATCH THAT WILL USED FOR TRAINING
     # -ENSURE OBSERVATION, REWARD, AND ACTION CHOICES ARE THE SAME IN THE WORKER
     match = Match(
-        game_speed=100,
+        game_speed=1,
         self_play=True,
         team_size=1,
         state_setter=DefaultState(),
@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     # LINK TO THE REDIS SERVER YOU SHOULD HAVE RUNNING (USE THE SAME PASSWORD YOU SET IN THE REDIS
     # CONFIG)
-    r = Redis(host="127.0.0.1", password="you_better_use_a_password")
+    r = Redis(host="172.18.33.54")
 
 
     # LAUNCH ROCKET LEAGUE AND BEGIN TRAINING

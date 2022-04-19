@@ -26,6 +26,11 @@ class ExpandAdvancedObs(AdvancedObs):
         obs = super(ExpandAdvancedObs, self).build_obs(player, state, previous_action)
         return numpy.expand_dims(obs, 0)
 
+class WandbStub:
+    def log(self, *args, **kwargs):
+        pass
+    project = "wandb-stub"
+    watch = log
 
 if __name__ == "__main__":
     """
@@ -37,13 +42,12 @@ if __name__ == "__main__":
 
     # ROCKET-LEARN USES WANDB WHICH REQUIRES A LOGIN TO USE. YOU CAN SET AN ENVIRONMENTAL VARIABLE
     # OR HARDCODE IT IF YOU ARE NOT SHARING YOUR SOURCE FILES
-    wandb.login(key=os.environ["WANDB_KEY"])
-    logger = wandb.init(project="demo", entity="example_entity")
-    logger.name = "DEFAULT_LEARNER_EXAMPLE"
+    # wandb.login(key=os.environ["WANDB_KEY"])
+    logger = WandbStub()
 
     # LINK TO THE REDIS SERVER YOU SHOULD HAVE RUNNING (USE THE SAME PASSWORD YOU SET IN THE REDIS
     # CONFIG)
-    redis = Redis(password="you_better_use_a_password")
+    redis = Redis(host="172.18.33.54")
 
     # ENSURE OBSERVATION, REWARD, AND ACTION CHOICES ARE THE SAME IN THE WORKER
     def obs():
@@ -107,6 +111,7 @@ if __name__ == "__main__":
         epochs=10,
         gamma=599 / 600,
         logger=logger,
+        device="cpu"
     )
 
     # BEGIN TRAINING. IT WILL CONTINUE UNTIL MANUALLY STOPPED
