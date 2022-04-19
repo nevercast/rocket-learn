@@ -24,7 +24,7 @@ class ExpandAdvancedObs(AdvancedObs):
 if __name__ == "__main__":
     """
 
-    Starts up a rocket-learn worker process, which plays out a game, sends back game data to the 
+    Starts up a rocket-learn worker process, which plays out a game, sends back game data to the
     learner, and receives updated model parameters when available
 
     """
@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     # LINK TO THE REDIS SERVER YOU SHOULD HAVE RUNNING (USE THE SAME PASSWORD YOU SET IN THE REDIS
     # CONFIG)
-    r = Redis(host="172.18.33.54")
+    r = Redis(host="192.168.1.20")
 
 
     # LAUNCH ROCKET LEAGUE AND BEGIN TRAINING
